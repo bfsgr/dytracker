@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json.schemastore.org/swcrc",
+  "env": {
+    "dynamicImport": true,
+    "targets": {
+      "browsers": ["last 2 versions, not dead, > 0.2%"]
+    }
+  },
+  "jsc": {
+    "parser": {
+      "syntax": "typescript",
+      "tsx": false,
+      "decorators": false,
+      "dynamicImport": true
+    },
+    "baseUrl": "./src",
+    "paths": {
+      "~/*": ["*"]
+    },
+    "keepClassNames": true
+  },
+  "minify": true,
+  "sourceMaps": false
+}
