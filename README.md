@@ -77,12 +77,10 @@ interface User {
     id: number
     name: string
   },
-  posts: [
-    {
+  posts: Array<{
       id: number
       title: string
-    }
-  ]
+  }>
 }
 
 /* Providing a generic will enable suggestions for the blueprint object */
