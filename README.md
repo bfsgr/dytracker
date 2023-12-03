@@ -60,7 +60,7 @@ tracker.diff(user)
 
 ## Typescript
 
-Dytracker was written in typescript so it has first class support for typescript. The same example above can be written as:
+Dytracker was written in typescript so it has first class support for types. The same example above can be written as:
 
 ```ts
 import { Dytracker } from 'dytracker'
