@@ -60,7 +60,7 @@ tracker.diff(user)
 
 ## Typescript
 
-Dytracker was written in typescript thus, it has first class support for typing. The same example above can be written as:
+Dytracker was written in typescript so it has first class support for typescript. The same example above can be written as:
 
 ```ts
 import { Dytracker } from 'dytracker'
@@ -177,8 +177,27 @@ const tracker = new Dytracker<Obj>({
 
 ### Nested properties
 
-When you need to track an object nested inside your top level object you are using the nested interface, which is a recursive interface that enables basic and nested types to an object.
+When you need to track an object nested inside your top level object you will need to use the nested interface, which is a recursive interface that enables basic and nested types to an object.
 Therefore you can select properties of a nested object with a boolean and nested objects with the same API.
+
+```ts
+interface User {
+  id: number
+  name: string
+  permission: {
+    id: number
+    name: string
+  }
+}
+
+const tracker = new Dytracker<User>({
+  name: true,
+  permission: {
+    id: true,
+    name: true
+  },
+})
+```
 
 #### `_predicate: (a: T, b: T) => boolean`
 

@@ -55,7 +55,7 @@ user.posts.push({ id: 2, title: 'Follow me at github!' })
   The type of the diff return will basically be a Partial of the generic you provided
   with the exception of arrays, which will be objects like { added: T[], updated: T[], removed: T[] }
 */
-const a = tracker.diff(user)
+const diff = tracker.diff(user)
 /*
   {
   name: 'Jane Smith',
@@ -68,4 +68,4 @@ const a = tracker.diff(user)
 }
 */
 
-console.dir(a, { depth: null })
+console.dir(diff, { depth: null })
