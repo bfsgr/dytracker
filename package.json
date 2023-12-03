@@ -15,7 +15,7 @@
     }
   },
   "scripts": {
-    "build": "rm -rf ./dist && concurrently npm:build:* --prefix-colors cyan,magenta,blue",
+    "build": "rm -rf ./dist && concurrently pnpm:build:* --prefix-colors cyan,magenta,blue",
     "build:types": "tsc",
     "build:esm": "swc src/dytracker.ts -o dist/dytracker.js -C module.type=es6",
     "build:cjs": "swc src/dytracker.ts -o dist/dytracker.cjs -C module.type=commonjs"
