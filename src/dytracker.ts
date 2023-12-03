@@ -1,21 +1,37 @@
-interface ListTracker<T extends any[] | undefined | null> {
-  __list__: T extends any[] ? Blueprint<T>[number] : undefined
+type Primitives = string | number | boolean | null | undefined | symbol | bigint
+
+type SupportedLists = any[]
+
+type Basics<T> = {
+  [K in keyof T as T[K] extends Primitives ? K : never]?: boolean
 }
 
-interface Options<T> {
-  __meta__?: Partial<{
-    keyname: string
-    predicate: (a: T, b: T) => boolean
-  }>
+type Nested<T> = {
+  [K in keyof T as T[K] extends object
+    ? T[K] extends SupportedLists
+      ? never
+      : K
+    : never]?: (Basics<T[K]> & Nested<T[K]>) | Options<T[K]>
 }
 
-type Blueprint<T> = {
-  [K in keyof T]?: T[K] extends any[] | null | undefined
-    ? ListTracker<T[K]>
-    : T[K] extends object
-      ? Blueprint<T[K]>
-      : boolean
-} & Options<T>
+type List<T> = {
+  [K in keyof T as T[K] extends SupportedLists ? K : never]: {
+    keyname: T[K] extends Array<infer R> ? keyof R : never
+    tracking: T[K] extends Array<infer R>
+      ? Omit<Blueprint<R>, keyof Options<any>>
+      : never
+  }
+}
+
+type Options<T> = {
+  _keyname?: keyof T
+  _predicate?: (a: T, b: T) => boolean
+}
+
+type Blueprint<T> = Basics<T> &
+  Nested<T> &
+  List<T> &
+  Pick<Options<T>, '_keyname'>
 
 type Diff<T> = {
   [K in keyof T]?: T[K] extends any[] | null | undefined
@@ -28,37 +44,43 @@ type Diff<T> = {
 export class Dytracker<T extends object> {
   constructor(
     private readonly _schema: Blueprint<T>,
-    private readonly _records = new Map<string | number | symbol, unknown>()
+    private readonly _records = new Map<string | number | symbol, unknown>(),
   ) {}
 
-  private _walk<S>(schema: Blueprint<S>, obj: S, key: keyof S): unknown {
+  private _walk<S>(
+    schema: Blueprint<S>,
+    obj: S,
+    key: keyof S & keyof Blueprint<S>,
+  ): unknown {
     if (schema[key] === true) return obj[key]
 
     if (
       typeof schema[key] === 'object' &&
-      Object.hasOwn(schema[key] as object, '__meta__')
+      Object.hasOwn(schema[key] as object, '_predicate')
     ) {
-      return obj[key]
+      return structuredClone(obj[key])
     }
 
     if (
       typeof schema[key] === 'object' &&
-      !Object.hasOwn(schema[key] as object, '__list__') &&
+      !Object.hasOwn(schema[key] as object, 'keyname') &&
+      !Object.hasOwn(schema[key] as object, 'tracking') &&
       !Array.isArray(obj[key])
     ) {
       const current: Record<any, any> = {}
 
-      for (const k in schema[key] as any) {
-        current[k] = this._walk(schema[key] as any, obj[key] as any, k)
+      for (const k in schema[key]) {
+        current[k] = this._walk(schema[key] as any, obj[key], k as any)
       }
 
       return current
     }
 
     if (
-      Array.isArray(obj[key]) &&
       typeof schema[key] === 'object' &&
-      Object.hasOwn(schema[key] as object, '__list__')
+      Object.hasOwn(schema[key] as object, 'keyname') &&
+      Object.hasOwn(schema[key] as object, 'tracking') &&
+      Array.isArray(obj[key])
     ) {
       const current = new Map<
         string | number | symbol,
@@ -66,13 +88,15 @@ export class Dytracker<T extends object> {
       >()
 
       for (const item of obj[key] as any[]) {
+        const itemId = item[(schema[key] as any).keyname]
+
         const currentObj: Record<any, any> = {}
 
-        for (const k in (schema[key] as any).__list__) {
-          currentObj[k] = this._walk((schema[key] as any).__list__, item, k)
+        for (const k in (schema[key] as any).tracking) {
+          currentObj[k] = this._walk((schema[key] as any).tracking, item, k)
         }
 
-        current.set(item.id, currentObj)
+        current.set(itemId, currentObj)
       }
 
       return current
@@ -83,7 +107,7 @@ export class Dytracker<T extends object> {
     schema: Blueprint<S>,
     tracked: S,
     current: S,
-    key: keyof S
+    key: keyof S & keyof Blueprint<S>,
   ): unknown {
     if (schema[key] === true) {
       if (tracked[key] !== current[key]) return current[key]
@@ -91,12 +115,12 @@ export class Dytracker<T extends object> {
 
     if (
       typeof schema[key] === 'object' &&
-      Object.hasOwn(schema[key] as object, '__meta__')
+      Object.hasOwn(schema[key] as object, '_predicate')
     ) {
-      const options = (schema[key] as Blueprint<S>).__meta__
+      const predicate = (schema[key] as any)._predicate
 
-      if (options?.predicate !== undefined) {
-        return !options.predicate(tracked[key] as any, current[key] as any)
+      if (predicate !== undefined) {
+        return !predicate(tracked[key] as any, current[key] as any)
           ? current[key]
           : undefined
       } else {
@@ -106,7 +130,8 @@ export class Dytracker<T extends object> {
 
     if (
       typeof schema[key] === 'object' &&
-      !Object.hasOwn(schema[key] as object, '__list__') &&
+      !Object.hasOwn(schema[key] as object, 'keyname') &&
+      !Object.hasOwn(schema[key] as object, 'tracking') &&
       !Array.isArray(current[key])
     ) {
       const diff: Record<any, any> = {}
@@ -116,7 +141,7 @@ export class Dytracker<T extends object> {
           schema[key] as any,
           tracked[key] as any,
           current[key] as any,
-          k
+          k,
         )
 
         if (result !== undefined) {
@@ -128,9 +153,10 @@ export class Dytracker<T extends object> {
     }
 
     if (
-      Array.isArray(current[key]) &&
       typeof schema[key] === 'object' &&
-      Object.hasOwn(schema[key] as object, '__list__')
+      Object.hasOwn(schema[key] as object, 'keyname') &&
+      Object.hasOwn(schema[key] as object, 'tracking') &&
+      Array.isArray(current[key])
     ) {
       const diff = {
         added: [] as any[],
@@ -139,29 +165,31 @@ export class Dytracker<T extends object> {
       }
 
       const listEntitiesMap = tracked[key] as Map<
-        string,
+        PropertyKey,
         Record<string | number, any>
       >
 
       const currentList = current[key] as any[]
 
+      const keyname = (schema[key] as any).keyname
+
       for (const item of currentList) {
-        if (!listEntitiesMap.has(item.id)) {
+        if (!listEntitiesMap.has(item[keyname])) {
           diff.added.push(item)
           continue
         }
 
-        const trackedItem = listEntitiesMap.get(item.id)!
+        const trackedItem = listEntitiesMap.get(item[keyname])!
 
         const currentObj: Record<any, any> = {}
         let changeCount = 0
 
-        for (const k in (schema[key] as any).__list__) {
+        for (const k in (schema[key] as any).tracking) {
           const found = this._check(
-            (schema[key] as any).__list__,
-            { id: item.id, ...trackedItem },
+            (schema[key] as any).tracking,
+            { id: item[keyname], ...trackedItem },
             item,
-            k
+            k,
           )
 
           if (found !== undefined) {
@@ -171,13 +199,13 @@ export class Dytracker<T extends object> {
         }
 
         if (changeCount > 0) {
-          diff.updated.push({ id: item.id, ...currentObj })
+          diff.updated.push({ id: item[keyname], ...currentObj })
         }
       }
 
       for (const [id] of listEntitiesMap) {
-        if (currentList.find((item) => item.id === id) === undefined) {
-          diff.removed.push({ id, ...listEntitiesMap.get(id) })
+        if (currentList.find((item) => item[keyname] === id) === undefined) {
+          diff.removed.push({ [keyname]: id, ...listEntitiesMap.get(id) })
         }
       }
 
@@ -186,7 +214,7 @@ export class Dytracker<T extends object> {
   }
 
   track(obj: T): void {
-    const keyname = this._schema.__meta__?.keyname ?? 'id'
+    const keyname = this._schema._keyname ?? 'id'
 
     const id = obj[keyname as keyof T] as PropertyKey
 
@@ -197,14 +225,14 @@ export class Dytracker<T extends object> {
     }
 
     for (const key in this._schema) {
-      current[key] = this._walk(this._schema, obj, key as keyof T)
+      current[key] = this._walk(this._schema, obj, key as any)
     }
 
     this._records.set(id, current)
   }
 
   diff(obj: T): Diff<T> {
-    const keyname = this._schema.__meta__?.keyname ?? 'id'
+    const keyname = this._schema._keyname ?? 'id'
 
     const id = obj[keyname as keyof T] as PropertyKey
 
