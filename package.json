@@ -1,7 +1,7 @@
 {
   "name": "dytracker",
   "version": "0.1.0",
-  "description": "",
+  "description": "Dytracker is simple library ment to enable diff of objects using a provided blueprint",
   "main": "dist/dytracker.js",
   "module": "dist/dytracker.js",
   "types": "dist/dytracker.d.ts",
@@ -20,9 +20,21 @@
     "build:esm": "swc src/dytracker.ts -o dist/dytracker.js -C module.type=es6",
     "build:cjs": "swc src/dytracker.ts -o dist/dytracker.cjs -C module.type=commonjs"
   },
-  "keywords": [],
+  "keywords": [
+    "object",
+    "track",
+    "diff",
+    "changes",
+    "entities",
+    "dynamic"
+  ],
   "author": "bfsgr",
   "license": "MIT",
+  "homepage": "https://github.com/bfsgr/dytracker",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bfsgr/dytracker.git"
+  },
   "devDependencies": {
     "@swc-node/register": "^1.6.8",
     "@swc/cli": "^0.1.63",
