@@ -72,10 +72,10 @@ interface User {
   permission: {
     id: number
     name: string
-  },
+  }
   posts: Array<{
-      id: number
-      title: string
+    id: number
+    title: string
   }>
 }
 
@@ -84,14 +84,14 @@ const tracker = new Dytracker<User>({
   name: true,
   email: true,
   permission: {
-    id: true
+    id: true,
   },
   posts: {
     keyname: 'id',
     tracking: {
-      title: true
-    }
-  }
+      title: true,
+    },
+  },
 })
 
 const user: User = {
@@ -99,15 +99,15 @@ const user: User = {
   name: 'Jane Doe',
   email: 'jane@example.com',
   permission: {
-    id: 1
-    name: 'Admin'
+    id: 1,
+    name: 'Admin',
   },
   posts: [
     {
       id: 1,
-      title: 'Hi there'
-    }
-  ]
+      title: 'Hi there',
+    },
+  ],
 }
 
 tracker.track(user)
@@ -132,7 +132,6 @@ tracker.diff(user)
   }
 }
 */
-
 ```
 
 ## API
@@ -194,7 +193,7 @@ const tracker = new Dytracker<User>({
   name: true,
   permission: {
     id: true,
-    name: true
+    name: true,
   },
 })
 ```
@@ -229,7 +228,6 @@ Dytracker makes it easy to keep track of what was added, updated and removed fro
 
 - It's currently not possible to track lists of primitives likes `number` or `string`
 - The only supported list is Array
-
 
 ```ts
 interface Post {
