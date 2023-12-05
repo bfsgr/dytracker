@@ -56,6 +56,9 @@ tracker.diff(user)
   }
 }
 */
+
+// Stop tracking user
+tracker.flush(user.id)
 ```
 
 ## Typescript
@@ -132,6 +135,9 @@ tracker.diff(user)
   }
 }
 */
+
+// Stop tracking user
+tracker.flush(user.id)
 ```
 
 ## API
@@ -200,7 +206,7 @@ const tracker = new Dytracker<User>({
 
 #### `_predicate: (a: T, b: T) => boolean`
 
-Somethimes you don't need to monitor properties of a nested object, especially for [value objects](https://martinfowler.com/bliki/ValueObject.html). In that case you can use the `_predicate` to dictate how the dytracker will check for the equality of that object.
+Somethimes you don't need to monitor properties of a nested object, especially for [value objects](https://martinfowler.com/bliki/ValueObject.html). In that case you can use `_predicate` to dictate how dytracker will check for equality of that object.
 
 ##### Caveats:
 

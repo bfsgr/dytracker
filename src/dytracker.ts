@@ -44,7 +44,7 @@ type Diff<T> = {
 export class Dytracker<T extends object> {
   constructor(
     private readonly _schema: Blueprint<T>,
-    private readonly _records = new Map<string | number | symbol, unknown>(),
+    private readonly _records = new Map<PropertyKey, unknown>(),
   ) {}
 
   private _walk<S>(
@@ -251,7 +251,7 @@ export class Dytracker<T extends object> {
     return diff
   }
 
-  flush(id: string | number): void {
+  flush(id: PropertyKey): void {
     this._records.delete(id)
   }
 }
