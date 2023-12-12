@@ -1,5 +1,8 @@
 # Dytracker
 
+[![NPM version](https://img.shields.io/npm/v/dytracker.svg?style=flat)](https://www.npmjs.com/package/dytracker)
+
+
 Dy(namic) tracker is simple library ment to enable diff of objects using a provided blueprint
 
 ## Example
