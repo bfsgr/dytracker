@@ -7,7 +7,7 @@ type Basics<T> = {
 }
 
 type Nested<T> = {
-  [K in keyof T as T[K] extends object
+  [K in keyof T as T[K] extends object | null | undefined
     ? T[K] extends SupportedLists
       ? never
       : K
@@ -15,9 +15,11 @@ type Nested<T> = {
 }
 
 type List<T> = {
-  [K in keyof T as T[K] extends SupportedLists ? K : never]: {
-    keyname: T[K] extends Array<infer R> ? keyof R : never
-    tracking: T[K] extends Array<infer R>
+  [K in keyof T as T[K] extends SupportedLists | null | undefined
+    ? K
+    : never]?: {
+    keyname: T[K] extends Array<infer R> | null | undefined ? keyof R : never
+    tracking: T[K] extends Array<infer R> | null | undefined
       ? Omit<Blueprint<R>, keyof Options<any>>
       : never
   }
@@ -28,7 +30,7 @@ type Options<T> = {
   _predicate?: (a: T, b: T) => boolean
 }
 
-type Blueprint<T> = Basics<T> &
+export type Blueprint<T> = Basics<T> &
   Nested<T> &
   List<T> &
   Pick<Options<T>, '_keyname'>
