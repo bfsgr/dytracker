@@ -1,6 +1,6 @@
 {
   "name": "dytracker",
-  "version": "0.1.1",
+  "version": "0.2.1",
   "description": "Dytracker is simple library ment to enable diff of objects using a provided blueprint",
   "main": "dist/dytracker.js",
   "module": "dist/dytracker.js",
